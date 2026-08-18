@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { ConfigSidebar } from "@/components/dashboard/ConfigSidebar";
 import { MapWorkspace } from "@/components/dashboard/MapWorkspace";
 import { SuitabilitySidebar } from "@/components/dashboard/SuitabilitySidebar";
@@ -26,11 +27,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
+  const [parcelArea, setParcelArea] = useState<number | null>(null);
+
   return (
     <main className="flex min-h-screen w-full flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
       <ConfigSidebar />
-      <MapWorkspace />
-      <SuitabilitySidebar />
+      <MapWorkspace onAreaChange={setParcelArea} />
+      <SuitabilitySidebar parcelArea={parcelArea} />
     </main>
   );
 }
