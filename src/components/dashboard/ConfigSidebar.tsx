@@ -34,7 +34,7 @@ export function ConfigSidebar() {
   const code = `${selection["height"]} ${selection["series"]} ${selection["parallel"]}`;
 
   return (
-    <aside className="flex h-full w-full shrink-0 flex-col overflow-y-auto border-r border-border bg-panel lg:w-[300px]">
+    <aside className="flex w-full shrink-0 flex-col border-r border-border bg-panel lg:h-full lg:w-[300px]">
       <header className="border-b border-border px-5 py-4">
         <h1 className="text-xl font-bold uppercase tracking-wide text-foreground">
           Stack n Stock
@@ -42,6 +42,7 @@ export function ConfigSidebar() {
         <p className="label-caps mt-1">Site Suitability Dashboard</p>
       </header>
 
+      <div className="flex-1 lg:min-h-0 lg:overflow-y-auto">
       <section className="space-y-4 border-b border-border px-5 py-5">
         <h2 className="label-caps">Configuration</h2>
         {GROUPS.map((group) => (
@@ -117,7 +118,9 @@ export function ConfigSidebar() {
         </ul>
       </section>
 
-      <div className="mt-auto space-y-2 border-t border-border bg-panel px-5 py-4 lg:sticky lg:bottom-0">
+      </div>
+
+      <div className="space-y-2 border-t border-border bg-panel px-5 py-4">
         <Button className="w-full font-display uppercase tracking-wider">
           Place Template
         </Button>
