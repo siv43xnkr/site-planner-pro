@@ -117,7 +117,7 @@ export function ConfigSidebar() {
         </ul>
       </section>
 
-      <div className="mt-auto space-y-2 px-5 py-5">
+      <div className="mt-auto space-y-2 border-t border-border bg-panel px-5 py-4 lg:sticky lg:bottom-0">
         <Button className="w-full font-display uppercase tracking-wider">
           Place Template
         </Button>
