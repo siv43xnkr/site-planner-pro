@@ -1,24 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ConfigSidebar } from "@/components/dashboard/ConfigSidebar";
+import { MapWorkspace } from "@/components/dashboard/MapWorkspace";
+import { SuitabilitySidebar } from "@/components/dashboard/SuitabilitySidebar";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Stack n Stock Site Suitability Dashboard" },
+      {
+        name: "description",
+        content:
+          "Plan ASRS pod sites: test Stack n Stock template configurations against land parcels for fit, circulation and access.",
+      },
+      { property: "og:title", content: "Stack n Stock Site Suitability Dashboard" },
+      {
+        property: "og:description",
+        content:
+          "Site-planning dashboard for testing Stack n Stock ASRS pod configurations against land parcels.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Dashboard() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen w-full flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
+      <ConfigSidebar />
+      <MapWorkspace />
+      <SuitabilitySidebar />
+    </main>
   );
 }
