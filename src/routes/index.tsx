@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { ConfigSidebar } from "@/components/dashboard/ConfigSidebar";
 import { MapWorkspace } from "@/components/dashboard/MapWorkspace";
 import { SuitabilitySidebar } from "@/components/dashboard/SuitabilitySidebar";
