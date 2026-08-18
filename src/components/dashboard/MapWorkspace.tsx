@@ -269,6 +269,187 @@ export function MapWorkspace({
     removeParcel();
   }, [clearDraft, removeParcel]);
 
+  /* ---------------- SNS template (H1 S1 R1) ---------------- */
+  const updateTemplateGeometry = useCallback(() => {
+    const maps = mapsRef.current;
+    const centre = templateCenterRef.current;
+    const t = templateRef.current;
+    if (!maps || !centre) return;
+    const rot = rotationRef.current;
+    const flip = flippedRef.current;
+
+    t.outline?.setPath(rectPath(maps, centre, OUTER_RECT, rot, flip));
+    ZONES.forEach((zone, i) => {
+      t.zones[i]?.setPath(rectPath(maps, centre, zone.rect, rot, flip));
+    });
+    let labelIndex = 0;
+    ZONES.forEach((zone) => {
+      if (!zone.label) return;
+      const c = rectCentre(zone.rect);
+      t.labels[labelIndex]?.setPosition(localToLatLng(maps, centre, c.x, c.y, rot, flip));
+      labelIndex += 1;
+    });
+
+    const handle = localToLatLng(maps, centre, 0, ROTATION_HANDLE_OFFSET, rot, flip);
+    t.rotate?.setPosition(handle);
+    t.move?.setPosition(centre);
+    t.arm?.setPath([centre, handle]);
+  }, []);
+
+  const destroyTemplate = useCallback(() => {
+    const t = templateRef.current;
+    t.outline?.setMap(null);
+    t.zones.forEach((p) => p.setMap(null));
+    t.labels.forEach((m) => m.setMap(null));
+    t.move?.setMap(null);
+    t.rotate?.setMap(null);
+    t.arm?.setMap(null);
+    templateRef.current = emptyTemplate();
+  }, []);
+
+  const placeTemplate = useCallback(() => {
+    const maps = mapsRef.current;
+    const map = mapRef.current;
+    if (!maps || !map) return;
+    const centre = map.getCenter();
+    if (!centre) return;
+
+    destroyTemplate();
+    templateCenterRef.current = centre;
+    rotationRef.current = 0;
+
+    const t = emptyTemplate();
+
+    t.zones = ZONES.map(
+      (zone) =>
+        new maps.Polygon({
+          map,
+          paths: rectPath(maps, centre, zone.rect, 0, flippedRef.current),
+          strokeColor: zone.stroke,
+          strokeWeight: zone.strokeWeight,
+          strokeOpacity: 0.95,
+          fillColor: zone.fill,
+          fillOpacity: zone.fillOpacity,
+          clickable: false,
+          zIndex: zone.zIndex,
+        }),
+    );
+
+    t.outline = new maps.Polygon({
+      map,
+      paths: rectPath(maps, centre, OUTER_RECT, 0, flippedRef.current),
+      strokeColor: TEMPLATE_STROKE,
+      strokeWeight: 3,
+      strokeOpacity: 1,
+      fillOpacity: 0,
+      clickable: false,
+      zIndex: 20,
+    });
+
+    t.labels = ZONES.filter((z) => z.label).map((zone) => {
+      const c = rectCentre(zone.rect);
+      return new maps.Marker({
+        map,
+        position: localToLatLng(maps, centre, c.x, c.y, 0, flippedRef.current),
+        clickable: false,
+        zIndex: 25,
+        icon: {
+          path: maps.SymbolPath.CIRCLE,
+          scale: 0,
+          fillOpacity: 0,
+          strokeOpacity: 0,
+        },
+        label: {
+          text: zone.label!,
+          color: zone.labelColor ?? "#f8fafc",
+          fontSize: zone.labelSize ?? "12px",
+          fontWeight: "700",
+        },
+      });
+    });
+
+    t.arm = new maps.Polyline({
+      map,
+      path: [centre, localToLatLng(maps, centre, 0, ROTATION_HANDLE_OFFSET, 0, flippedRef.current)],
+      strokeColor: TEMPLATE_STROKE,
+      strokeOpacity: 0.8,
+      strokeWeight: 1.5,
+      zIndex: 21,
+    });
+
+    t.move = new maps.Marker({
+      map,
+      position: centre,
+      draggable: true,
+      title: "Drag to move the SNS template",
+      zIndex: 30,
+      icon: {
+        path: maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: TEMPLATE_STROKE,
+        fillOpacity: 1,
+        strokeColor: "#0f172a",
+        strokeWeight: 2,
+      },
+    });
+
+    t.rotate = new maps.Marker({
+      map,
+      position: localToLatLng(maps, centre, 0, ROTATION_HANDLE_OFFSET, 0, flippedRef.current),
+      draggable: true,
+      title: "Drag to rotate the SNS template",
+      zIndex: 30,
+      icon: {
+        path: maps.SymbolPath.CIRCLE,
+        scale: 7,
+        fillColor: "#22d3ee",
+        fillOpacity: 1,
+        strokeColor: "#0f172a",
+        strokeWeight: 2,
+      },
+    });
+
+    t.move.addListener("drag", (e: google.maps.MapMouseEvent) => {
+      if (!e.latLng) return;
+      templateCenterRef.current = e.latLng;
+      updateTemplateGeometry();
+    });
+    t.rotate.addListener("drag", (e: google.maps.MapMouseEvent) => {
+      const c = templateCenterRef.current;
+      if (!e.latLng || !c) return;
+      rotationRef.current = headingFromCentre(maps, c, e.latLng);
+      updateTemplateGeometry();
+    });
+
+    templateRef.current = t;
+    setHasTemplate(true);
+    onTemplateChange(true);
+  }, [destroyTemplate, onTemplateChange, updateTemplateGeometry]);
+
+  const clearTemplate = useCallback(() => {
+    destroyTemplate();
+    templateCenterRef.current = null;
+    rotationRef.current = 0;
+    flippedRef.current = false;
+    setHasTemplate(false);
+    onTemplateChange(false);
+  }, [destroyTemplate, onTemplateChange]);
+
+  useEffect(() => {
+    if (placeNonce > 0 && status === "ready") placeTemplate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeNonce, status]);
+
+  useEffect(() => {
+    if (flipNonce > 0 && templateCenterRef.current) {
+      flippedRef.current = !flippedRef.current;
+      updateTemplateGeometry();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flipNonce]);
+
+
+
   /* ---------------- location search ---------------- */
   useEffect(() => {
     if (status !== "ready" || query.trim().length < 3) {
