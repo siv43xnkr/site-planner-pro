@@ -65,8 +65,8 @@
   --color-status-warn: var(--status-warn);
   --color-status-fail: var(--status-fail);
   --color-status-idle: var(--status-idle);
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
+  --font-display: "Barlow Condensed", "Barlow", sans-serif;
+  --font-body: "Barlow", ui-sans-serif, system-ui, sans-serif;
 }
 
 
@@ -98,8 +98,6 @@
   --status-fail: oklch(0.63 0.2 25);
   --status-idle: oklch(0.62 0.014 254);
   --grid-line: oklch(1 0 0 / 5%);
-  --font-display: "Barlow Condensed", "Barlow", sans-serif;
-  --font-body: "Barlow", ui-sans-serif, system-ui, sans-serif;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
