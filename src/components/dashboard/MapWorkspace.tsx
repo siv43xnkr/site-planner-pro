@@ -16,13 +16,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { hasGoogleMapsKey, loadGoogleMaps } from "@/lib/google-maps";
+import {
+  OUTER_RECT,
+  ROTATION_HANDLE_OFFSET,
+  ZONES,
+  headingFromCentre,
+  localToLatLng,
+  rectCentre,
+  rectPath,
+} from "@/lib/sns-template";
 
 const PARCEL_STROKE = "#22d3ee";
+const TEMPLATE_STROKE = "#f8fafc";
 const DEFAULT_CENTER = { lat: 12.9716, lng: 77.5946 };
 
 type Suggestion = { placeId: string; primary: string; secondary: string };
 
-export function MapWorkspace({ onAreaChange }: { onAreaChange: (area: number | null) => void }) {
+type TemplateObjects = {
+  outline: google.maps.Polygon | null;
+  zones: google.maps.Polygon[];
+  labels: google.maps.Marker[];
+  move: google.maps.Marker | null;
+  rotate: google.maps.Marker | null;
+  arm: google.maps.Polyline | null;
+};
+
+const emptyTemplate = (): TemplateObjects => ({
+  outline: null,
+  zones: [],
+  labels: [],
+  move: null,
+  rotate: null,
+  arm: null,
+});
+
+export function MapWorkspace({
+  onAreaChange,
+  placeNonce,
+  flipNonce,
+  onTemplateChange,
+}: {
+  onAreaChange: (area: number | null) => void;
+  placeNonce: number;
+  flipNonce: number;
+  onTemplateChange: (placed: boolean) => void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapsRef = useRef<typeof google.maps | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -33,6 +71,10 @@ export function MapWorkspace({ onAreaChange }: { onAreaChange: (area: number | n
     markers: google.maps.Marker[];
   }>({ path: [], line: null, markers: [] });
   const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
+  const templateRef = useRef<TemplateObjects>(emptyTemplate());
+  const templateCenterRef = useRef<google.maps.LatLng | null>(null);
+  const rotationRef = useRef(0);
+  const flippedRef = useRef(false);
 
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "unconfigured">(
     hasGoogleMapsKey ? "loading" : "unconfigured",
@@ -41,8 +83,10 @@ export function MapWorkspace({ onAreaChange }: { onAreaChange: (area: number | n
   const [satellite, setSatellite] = useState(true);
   const [drawing, setDrawing] = useState(false);
   const [hasParcel, setHasParcel] = useState(false);
+  const [hasTemplate, setHasTemplate] = useState(false);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
 
   /* ---------------- map init ---------------- */
   useEffect(() => {
