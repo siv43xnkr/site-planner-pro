@@ -9,12 +9,12 @@ const GROUPS = [
 ] as const;
 
 const ZONES = [
-  { tag: "b", title: "Bike Dispatch Side", detail: "2.50 m", color: "bg-primary/70" },
-  { tag: "A", title: "Pod / Container", detail: null, color: "bg-status-pass/70" },
-  { tag: "B", title: "Main Operations", detail: "5.00 m", color: "bg-status-warn/70" },
-  { tag: "", title: "Rear Bike Connection", detail: "1.80 m", color: "bg-muted-foreground/50" },
-  { tag: "X", title: "Utility Area", detail: null, color: "bg-status-fail/60" },
-  { tag: "", title: "Generator", detail: "3.0 m × 1.1 m", color: "bg-muted-foreground/50" },
+  { tag: "b", title: "Bike Dispatch Side", detail: "2.50 m", color: "bg-primary" },
+  { tag: "A", title: "Pod / Container", detail: null, color: "bg-status-pass" },
+  { tag: "B", title: "Main Operations", detail: "5.00 m", color: "bg-status-warn" },
+  { tag: "", title: "Rear Bike Connection", detail: "1.80 m", color: "bg-muted-foreground" },
+  { tag: "X", title: "Utility Area", detail: null, color: "bg-status-fail" },
+  { tag: "", title: "Generator", detail: "3.0 m × 1.1 m", color: "bg-muted-foreground" },
 ];
 
 const DIMENSIONS = [
