@@ -31,7 +31,7 @@ export function ConfigSidebar() {
     parallel: "R1",
   });
 
-  const code = `${selection.height} ${selection.series} ${selection.parallel}`;
+  const code = `${selection["height"]} ${selection["series"]} ${selection["parallel"]}`;
 
   return (
     <aside className="flex h-full w-full shrink-0 flex-col overflow-y-auto border-r border-border bg-panel lg:w-[300px]">
