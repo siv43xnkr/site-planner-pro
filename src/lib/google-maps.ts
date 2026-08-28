@@ -1,11 +1,17 @@
 /// <reference types="google.maps" />
 
-const BROWSER_KEY = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as
-  | string
-  | undefined;
-const CHANNEL = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID"] as
-  | string
-  | undefined;
+const LOCAL_BROWSER_KEY = import.meta.env["VITE_GOOGLE_MAPS_API_KEY"] as string | undefined;
+const LOVABLE_BROWSER_KEY = import.meta.env[
+  "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"
+] as string | undefined;
+const LOVABLE_CHANNEL = import.meta.env[
+  "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID"
+] as string | undefined;
+
+// Local development uses VITE_GOOGLE_MAPS_API_KEY when present.
+// Lovable preview remains compatible by falling back to its managed browser key.
+const BROWSER_KEY = LOCAL_BROWSER_KEY?.trim() || LOVABLE_BROWSER_KEY?.trim();
+const CHANNEL = LOCAL_BROWSER_KEY?.trim() ? undefined : LOVABLE_CHANNEL;
 
 export const hasGoogleMapsKey = Boolean(BROWSER_KEY);
 
@@ -17,7 +23,11 @@ export function loadGoogleMaps(): Promise<typeof google.maps> {
     return Promise.reject(new Error("Google Maps can only load in the browser."));
   }
   if (!BROWSER_KEY) {
-    return Promise.reject(new Error("Google Maps is not connected."));
+    return Promise.reject(
+      new Error(
+        "Google Maps API key is missing. For local use, create .env.local and set VITE_GOOGLE_MAPS_API_KEY.",
+      ),
+    );
   }
   if (loader) return loader;
 

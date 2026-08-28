@@ -1,33 +1,17 @@
 /// <reference types="google.maps" />
 
+import type { TemplateSelection } from "@/lib/site-types";
+
 /**
- * H1 S1 R1 SNS site template geometry.
+ * SNS compact site-template geometry.
  *
  * Local coordinate system, in metres, origin at the template centre:
  *   +x = across the width (b -> A -> B in normal orientation)
  *   +y = towards the front of the template (away from the rear bike lane)
+ *
+ * Ground footprint is driven by S and R. H is retained in the selected
+ * configuration code but does not change the current ground geometry.
  */
-
-export const TEMPLATE_WIDTH = 9.94;
-export const TEMPLATE_DEPTH = 15.8;
-export const TEMPLATE_AREA = TEMPLATE_WIDTH * TEMPLATE_DEPTH; // 157.052 m²
-
-const HALF_W = TEMPLATE_WIDTH / 2; // 4.97
-const HALF_D = TEMPLATE_DEPTH / 2; // 7.90
-
-/** Depth split: 1.80 m rear bike lane, then the 14.00 m main block. */
-const REAR_Y0 = -HALF_D; // -7.90
-const REAR_Y1 = -HALF_D + 1.8; // -6.10
-const BLOCK_Y0 = REAR_Y1; // -6.10
-const BLOCK_Y1 = HALF_D; // 7.90
-
-/** Width split: b 2.50 | A 2.44 | B 5.00 */
-const B_BIKE_X0 = -HALF_W; // -4.97
-const B_BIKE_X1 = B_BIKE_X0 + 2.5; // -2.47
-const A_X0 = B_BIKE_X1;
-const A_X1 = A_X0 + 2.44; // -0.03
-const B_OPS_X0 = A_X1;
-const B_OPS_X1 = HALF_W; // 4.97
 
 export type Rect = { x0: number; x1: number; y0: number; y1: number };
 
@@ -42,110 +26,182 @@ export type ZoneStyle = {
   label?: string;
   labelColor?: string;
   labelSize?: string;
+  labelMinZoom?: number;
 };
 
-export const OUTER_RECT: Rect = { x0: -HALF_W, x1: HALF_W, y0: -HALF_D, y1: HALF_D };
+export type TemplateDefinition = {
+  code: string;
+  selection: TemplateSelection;
+  width: number;
+  depth: number;
+  area: number;
+  cents: number;
+  podLength: number;
+  podWidth: number;
+  outerRect: Rect;
+  zones: ZoneStyle[];
+  rotationHandleOffset: number;
+};
 
-export const ZONES: ZoneStyle[] = [
-  {
-    key: "b",
-    rect: { x0: B_BIKE_X0, x1: B_BIKE_X1, y0: BLOCK_Y0, y1: BLOCK_Y1 },
-    stroke: "#f59e0b",
-    fill: "#fbbf24",
-    fillOpacity: 0.35,
-    strokeWeight: 2,
-    zIndex: 11,
-    label: "b — BIKE SIDE 2.5 m",
-    labelColor: "#fde68a",
-  },
-  {
-    key: "A",
-    rect: { x0: A_X0, x1: A_X1, y0: BLOCK_Y0, y1: BLOCK_Y1 },
-    stroke: "#a855f7",
-    fill: "#c084fc",
-    fillOpacity: 0.4,
-    strokeWeight: 2,
-    zIndex: 11,
-    label: "A — POD",
-    labelColor: "#e9d5ff",
-  },
-  {
-    key: "A-cap-rear",
-    rect: { x0: A_X0, x1: A_X1, y0: BLOCK_Y0, y1: BLOCK_Y0 + 1 },
-    stroke: "#7e22ce",
-    fill: "#7e22ce",
-    fillOpacity: 0.3,
-    strokeWeight: 1,
-    zIndex: 12,
-    label: "E",
-    labelColor: "#f3e8ff",
-    labelSize: "10px",
-  },
-  {
-    key: "A-cap-front",
-    rect: { x0: A_X0, x1: A_X1, y0: BLOCK_Y1 - 1, y1: BLOCK_Y1 },
-    stroke: "#7e22ce",
-    fill: "#7e22ce",
-    fillOpacity: 0.3,
-    strokeWeight: 1,
-    zIndex: 12,
-    label: "E",
-    labelColor: "#f3e8ff",
-    labelSize: "10px",
-  },
-  {
-    key: "B",
-    rect: { x0: B_OPS_X0, x1: B_OPS_X1, y0: BLOCK_Y0, y1: BLOCK_Y1 },
-    stroke: "#22c55e",
-    fill: "#4ade80",
-    fillOpacity: 0.3,
-    strokeWeight: 2,
-    zIndex: 11,
-    label: "B — MAIN OPERATIONS",
-    labelColor: "#bbf7d0",
-  },
-  {
-    key: "rear-bike",
-    rect: { x0: -HALF_W, x1: HALF_W, y0: REAR_Y0, y1: REAR_Y1 },
-    stroke: "#3b82f6",
-    fill: "#60a5fa",
-    fillOpacity: 0.35,
-    strokeWeight: 2,
-    zIndex: 11,
-    label: "1.8 m BIKE-ONLY CONNECTION",
-    labelColor: "#dbeafe",
-    labelSize: "11px",
-  },
-  {
-    key: "X",
-    rect: { x0: B_OPS_X0 + 0.5, x1: B_OPS_X0 + 4.5, y0: BLOCK_Y0 + 0.5, y1: BLOCK_Y0 + 4.5 },
-    stroke: "#f43f5e",
-    fill: "#fb7185",
-    fillOpacity: 0.4,
-    strokeWeight: 2,
-    zIndex: 13,
-    label: "X — UTILITY",
-    labelColor: "#ffe4e6",
-    labelSize: "11px",
-  },
-  {
-    key: "generator",
-    rect: { x0: B_OPS_X0 + 1, x1: B_OPS_X0 + 4, y0: BLOCK_Y0 + 5.1, y1: BLOCK_Y0 + 6.2 },
-    stroke: "#94a3b8",
-    fill: "#cbd5e1",
-    fillOpacity: 0.45,
-    strokeWeight: 1.5,
-    zIndex: 13,
-    label: "GENERATOR",
-    labelColor: "#e2e8f0",
-    labelSize: "10px",
-  },
-];
+const CONTAINER_LENGTH_M = 12.192;
+const END_CAP_UTILITY_M = 2.5;
+const END_CAP_OPPOSITE_M = 1.5;
+const CONTAINER_WIDTH_M = 2.438;
+const BIKE_SIDE_WIDTH_M = 2.5;
+const B_OPS_WIDTH_M = 5;
+const REAR_BIKE_DEPTH_M = 1.8;
+const SQM_PER_CENT = 40.4686;
 
-/** Distance from the template centre to the rotation handle, in metres. */
-export const ROTATION_HANDLE_OFFSET = HALF_D + 6;
+function indexFromCode(value: "S1" | "S2" | "R1" | "R2") {
+  return value.endsWith("2") ? 2 : 1;
+}
 
-const toRad = (deg: number) => (deg * Math.PI) / 180;
+export function buildTemplateDefinition(selection: TemplateSelection): TemplateDefinition {
+  const s = indexFromCode(selection.series);
+  const r = indexFromCode(selection.parallel);
+
+  const podLength = s * CONTAINER_LENGTH_M + END_CAP_UTILITY_M + END_CAP_OPPOSITE_M;
+  const podWidth = r * CONTAINER_WIDTH_M;
+  const width = BIKE_SIDE_WIDTH_M + podWidth + B_OPS_WIDTH_M;
+  const depth = podLength + REAR_BIKE_DEPTH_M;
+  const area = width * depth;
+
+  const halfW = width / 2;
+  const halfD = depth / 2;
+
+  const rearY0 = -halfD;
+  const rearY1 = rearY0 + REAR_BIKE_DEPTH_M;
+  const blockY0 = rearY1;
+  const blockY1 = halfD;
+
+  const bikeX0 = -halfW;
+  const bikeX1 = bikeX0 + BIKE_SIDE_WIDTH_M;
+  const podX0 = bikeX1;
+  const podX1 = podX0 + podWidth;
+  const opsX0 = podX1;
+  const opsX1 = halfW;
+
+  const code = `${selection.height} ${selection.series} ${selection.parallel}`;
+
+  const zones: ZoneStyle[] = [
+    {
+      key: "b",
+      rect: { x0: bikeX0, x1: bikeX1, y0: blockY0, y1: blockY1 },
+      stroke: "#f59e0b",
+      fill: "#fbbf24",
+      fillOpacity: 0.3,
+      strokeWeight: 2,
+      zIndex: 11,
+      label: "b - BIKE SIDE 2.5 m",
+      labelColor: "#fde68a",
+      labelMinZoom: 20,
+    },
+    {
+      key: "A",
+      rect: { x0: podX0, x1: podX1, y0: blockY0, y1: blockY1 },
+      stroke: "#a855f7",
+      fill: "#c084fc",
+      fillOpacity: 0.36,
+      strokeWeight: 2,
+      zIndex: 11,
+      label: `A - POD ${selection.series} ${selection.parallel}`,
+      labelColor: "#e9d5ff",
+      labelMinZoom: 20,
+    },
+    {
+      key: "A-cap-rear",
+      rect: { x0: podX0, x1: podX1, y0: blockY0, y1: blockY0 + END_CAP_UTILITY_M },
+      stroke: "#7e22ce",
+      fill: "#7e22ce",
+      fillOpacity: 0.28,
+      strokeWeight: 1,
+      zIndex: 12,
+      label: "E 2.50",
+      labelColor: "#f3e8ff",
+      labelSize: "10px",
+      labelMinZoom: 22,
+    },
+    {
+      key: "A-cap-front",
+      rect: { x0: podX0, x1: podX1, y0: blockY1 - END_CAP_OPPOSITE_M, y1: blockY1 },
+      stroke: "#7e22ce",
+      fill: "#7e22ce",
+      fillOpacity: 0.28,
+      strokeWeight: 1,
+      zIndex: 12,
+      label: "E 1.50",
+      labelColor: "#f3e8ff",
+      labelSize: "10px",
+      labelMinZoom: 22,
+    },
+    {
+      key: "B",
+      rect: { x0: opsX0, x1: opsX1, y0: blockY0, y1: blockY1 },
+      stroke: "#22c55e",
+      fill: "#4ade80",
+      fillOpacity: 0.28,
+      strokeWeight: 2,
+      zIndex: 11,
+      label: "B - MAIN OPERATIONS",
+      labelColor: "#bbf7d0",
+      labelMinZoom: 20,
+    },
+    {
+      key: "rear-bike",
+      rect: { x0: -halfW, x1: halfW, y0: rearY0, y1: rearY1 },
+      stroke: "#3b82f6",
+      fill: "#60a5fa",
+      fillOpacity: 0.32,
+      strokeWeight: 2,
+      zIndex: 11,
+      label: "1.8 m BIKE-ONLY CONNECTION",
+      labelColor: "#dbeafe",
+      labelSize: "10px",
+      labelMinZoom: 20,
+    },
+    {
+      key: "X",
+      rect: { x0: opsX0 + 0.5, x1: opsX0 + 4.5, y0: blockY0 + 0.5, y1: blockY0 + 4.5 },
+      stroke: "#f43f5e",
+      fill: "#fb7185",
+      fillOpacity: 0.4,
+      strokeWeight: 2,
+      zIndex: 13,
+      label: "X - UTILITY",
+      labelColor: "#ffe4e6",
+      labelSize: "10px",
+      labelMinZoom: 21,
+    },
+    {
+      key: "generator",
+      rect: { x0: opsX0 + 1, x1: opsX0 + 4, y0: blockY0 + 5.1, y1: blockY0 + 6.2 },
+      stroke: "#94a3b8",
+      fill: "#cbd5e1",
+      fillOpacity: 0.45,
+      strokeWeight: 1.5,
+      zIndex: 13,
+      label: "GENERATOR",
+      labelColor: "#e2e8f0",
+      labelSize: "9px",
+      labelMinZoom: 21,
+    },
+  ];
+
+  return {
+    code,
+    selection,
+    width,
+    depth,
+    area,
+    cents: area / SQM_PER_CENT,
+    podLength,
+    podWidth,
+    outerRect: { x0: -halfW, x1: halfW, y0: -halfD, y1: halfD },
+    zones,
+    rotationHandleOffset: halfD + 6,
+  };
+}
+
 const toDeg = (rad: number) => (rad * 180) / Math.PI;
 
 /** Converts a local metre offset into a real geographic position. */
@@ -196,5 +252,3 @@ export function headingFromCentre(
   const heading = maps.geometry.spherical.computeHeading(origin, point);
   return ((heading % 360) + 360) % 360;
 }
-
-export { toRad };
